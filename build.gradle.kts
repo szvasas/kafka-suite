@@ -12,7 +12,6 @@ dependencies {
     val slf4jVersion = "1.7.30"
     val assertjVersion = "3.18.1"
     val testContainersVersion = "1.15.1"
-    val coroutinesVersion = "1.4.2"
 
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -20,7 +19,6 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:$slf4jVersion")
     implementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     implementation("org.testcontainers:kafka")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")

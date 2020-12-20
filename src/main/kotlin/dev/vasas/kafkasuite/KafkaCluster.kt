@@ -1,13 +1,10 @@
 package dev.vasas.kafkasuite
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.utility.DockerImageName.parse
+import java.util.concurrent.CompletableFuture
 
 typealias ZookeeperContainer = GenericContainer<Nothing>
 
@@ -21,14 +18,12 @@ class KafkaCluster(val zookeeperNode: ZookeeperContainer,
     fun startCluster() {
         zookeeperNode.start()
 
-        runBlocking {
-            val launchingJobs = kafkaNodes.map {
-                GlobalScope.launch {
-                    it.start()
-                }
+        val launchingJobs = kafkaNodes.map {
+            CompletableFuture.runAsync {
+                it.start()
             }
-            launchingJobs.joinAll()
         }
+        CompletableFuture.allOf(*launchingJobs.toTypedArray()).get()
     }
 
     fun stopCluster() {
