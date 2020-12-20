@@ -21,5 +21,7 @@ class TestKafkaClusterTest {
         testKafkaCluster.startCluster()
 
         assertThat(testKafkaCluster.isRunning()).isTrue
+
+        testKafkaCluster.stopCluster()
     }
 }

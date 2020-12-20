@@ -1,5 +1,9 @@
 package dev.vasas.kafkasuite
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.Network
@@ -16,7 +20,15 @@ class TestKafkaCluster(val zookeeperNode: ZookeeperContainer,
 
     fun startCluster() {
         zookeeperNode.start()
-        kafkaNodes.forEach(KafkaContainer::start)
+
+        runBlocking {
+            val launchingJobs = kafkaNodes.map {
+                GlobalScope.launch {
+                    it.start()
+                }
+            }
+            launchingJobs.joinAll()
+        }
     }
 
     fun stopCluster() {
