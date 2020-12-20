@@ -16,11 +16,11 @@ class KafkaClusterTest {
 
     @Test
     fun `a 3 node Kafka cluster is initialized and started`() {
-        val testKafkaCluster = buildKafkaCluster()
-        testKafkaCluster.startCluster()
+        val kafkaCluster = buildKafkaCluster()
+        kafkaCluster.start()
 
-        assertThat(testKafkaCluster.isRunning()).isTrue
+        assertThat(kafkaCluster.isRunning).isTrue
 
-        testKafkaCluster.stopCluster()
+        kafkaCluster.stop()
     }
 }

@@ -12,10 +12,20 @@ private const val DEFAULT_ZOOKEEPER_IMAGE = "zookeeper:3.4.9"
 private const val DEFAULT_KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3"
 private const val ZOOKEEPER_NETWORK_ALIAS = "zookeeper"
 
-class KafkaCluster(val zookeeperNode: ZookeeperContainer,
+class KafkaCluster(private val zookeeperNode: ZookeeperContainer,
                    val kafkaNodes: List<KafkaContainer>) {
 
-    fun startCluster() {
+    val isRunning: Boolean
+        get() {
+            return zookeeperNode.isRunning && kafkaNodes.all(KafkaContainer::isRunning)
+        }
+
+    val bootstrapServers: String
+        get() {
+            return kafkaNodes.joinToString(",", transform = KafkaContainer::getBootstrapServers)
+        }
+
+    fun start() {
         zookeeperNode.start()
 
         val launchingJobs = kafkaNodes.map {
@@ -26,15 +36,10 @@ class KafkaCluster(val zookeeperNode: ZookeeperContainer,
         CompletableFuture.allOf(*launchingJobs.toTypedArray()).get()
     }
 
-    fun stopCluster() {
+    fun stop() {
         zookeeperNode.stop()
         kafkaNodes.forEach(KafkaContainer::stop)
     }
-
-    fun isRunning(): Boolean {
-        return zookeeperNode.isRunning && kafkaNodes.all(KafkaContainer::isRunning)
-    }
-
 }
 
 fun buildKafkaCluster(nodeCount: Int = 3,
