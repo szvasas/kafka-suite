@@ -15,8 +15,8 @@ private const val DEFAULT_ZOOKEEPER_IMAGE = "zookeeper:3.4.9"
 private const val DEFAULT_KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3"
 private const val ZOOKEEPER_NETWORK_ALIAS = "zookeeper"
 
-class TestKafkaCluster(val zookeeperNode: ZookeeperContainer,
-                       val kafkaNodes: List<KafkaContainer>) {
+class KafkaCluster(val zookeeperNode: ZookeeperContainer,
+                   val kafkaNodes: List<KafkaContainer>) {
 
     fun startCluster() {
         zookeeperNode.start()
@@ -42,28 +42,28 @@ class TestKafkaCluster(val zookeeperNode: ZookeeperContainer,
 
 }
 
-fun buildTestKafkaCluster(nodeCount: Int = 3,
-                          kafkaImage: String = DEFAULT_KAFKA_IMAGE,
-                          zookeeperImage: String = DEFAULT_ZOOKEEPER_IMAGE
-): TestKafkaCluster {
+fun buildKafkaCluster(nodeCount: Int = 3,
+                      kafkaImage: String = DEFAULT_KAFKA_IMAGE,
+                      zookeeperImage: String = DEFAULT_ZOOKEEPER_IMAGE
+): KafkaCluster {
     val network = Network.newNetwork()
-    val zookeeperNode = createZookeeperContainer(zookeeperImage, network)
+    val zookeeperNode = createZookeeperNode(zookeeperImage, network)
 
     val kafkaNodes = (1..nodeCount).map { nodeId ->
-        createKafkaContainer(kafkaImage, network, nodeId)
+        createKafkaNode(kafkaImage, network, nodeId)
     }
 
-    return TestKafkaCluster(zookeeperNode, kafkaNodes)
+    return KafkaCluster(zookeeperNode, kafkaNodes)
 }
 
-private fun createZookeeperContainer(zookeeperImage: String, network: Network): ZookeeperContainer {
+private fun createZookeeperNode(zookeeperImage: String, network: Network): ZookeeperContainer {
     return ZookeeperContainer(parse(zookeeperImage)).apply {
         withNetwork(network)
         withNetworkAliases(ZOOKEEPER_NETWORK_ALIAS)
     }
 }
 
-private fun createKafkaContainer(kafkaImage: String, network: Network, id: Int): KafkaContainer {
+private fun createKafkaNode(kafkaImage: String, network: Network, id: Int): KafkaContainer {
     return KafkaContainer(parse(kafkaImage))
             .withNetwork(network)
             .withExternalZookeeper("$ZOOKEEPER_NETWORK_ALIAS:2181")
