@@ -11,7 +11,7 @@ class KafkaClusterTest {
     @ParameterizedTest
     @ValueSource(ints = [1, 2, 3, 4, 5])
     fun `buildKafkaCluster creates cluster with correct number of Kafka nodes`(clusterSize: Int) {
-        assertThat(buildKafkaCluster(clusterSize).kafkaNodes.size).isEqualTo(clusterSize)
+        assertThat(buildKafkaCluster(clusterSize).size).isEqualTo(clusterSize)
     }
 
     @Test

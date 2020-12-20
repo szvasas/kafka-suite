@@ -13,7 +13,9 @@ private const val DEFAULT_KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3"
 private const val ZOOKEEPER_NETWORK_ALIAS = "zookeeper"
 
 class KafkaCluster(private val zookeeperNode: ZookeeperContainer,
-                   val kafkaNodes: List<KafkaContainer>) {
+                   private val kafkaNodes: List<KafkaContainer>) {
+
+    val size: Int = kafkaNodes.size
 
     val isRunning: Boolean
         get() {
