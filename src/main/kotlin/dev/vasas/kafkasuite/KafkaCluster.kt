@@ -1,3 +1,5 @@
+@file:JvmName("KafkaClusterFactory")
+
 package dev.vasas.kafkasuite
 
 import org.testcontainers.containers.GenericContainer
@@ -8,6 +10,7 @@ import java.util.concurrent.CompletableFuture
 
 typealias ZookeeperContainer = GenericContainer<Nothing>
 
+private const val DEFAULT_CLUSTER_SIZE = 3
 private const val DEFAULT_ZOOKEEPER_IMAGE = "zookeeper:3.4.9"
 private const val DEFAULT_KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3"
 private const val ZOOKEEPER_NETWORK_ALIAS = "zookeeper"
@@ -44,9 +47,10 @@ class KafkaCluster(private val zookeeperNode: ZookeeperContainer,
     }
 }
 
-fun buildKafkaCluster(nodeCount: Int = 3,
-                      kafkaImage: String = DEFAULT_KAFKA_IMAGE,
-                      zookeeperImage: String = DEFAULT_ZOOKEEPER_IMAGE
+@JvmOverloads
+fun createKafkaCluster(nodeCount: Int = DEFAULT_CLUSTER_SIZE,
+                       kafkaImage: String = DEFAULT_KAFKA_IMAGE,
+                       zookeeperImage: String = DEFAULT_ZOOKEEPER_IMAGE
 ): KafkaCluster {
     val network = Network.newNetwork()
     val zookeeperNode = createZookeeperNode(zookeeperImage, network)

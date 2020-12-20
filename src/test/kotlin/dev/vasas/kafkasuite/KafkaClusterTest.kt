@@ -10,13 +10,13 @@ class KafkaClusterTest {
 
     @ParameterizedTest
     @ValueSource(ints = [1, 2, 3, 4, 5])
-    fun `buildKafkaCluster creates cluster with correct number of Kafka nodes`(clusterSize: Int) {
-        assertThat(buildKafkaCluster(clusterSize).size).isEqualTo(clusterSize)
+    fun `createKafkaCluster creates cluster with correct number of Kafka nodes`(clusterSize: Int) {
+        assertThat(createKafkaCluster(clusterSize).size).isEqualTo(clusterSize)
     }
 
     @Test
     fun `a 3 node Kafka cluster is initialized and started`() {
-        val kafkaCluster = buildKafkaCluster()
+        val kafkaCluster = createKafkaCluster()
         kafkaCluster.start()
 
         assertThat(kafkaCluster.isRunning).isTrue
