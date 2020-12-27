@@ -9,11 +9,13 @@ interface KafkaSuite {
     val kafkaCluster: DockerKafkaCluster
 
     @BeforeAll
+    @JvmDefault
     fun kafkaSuiteBeforeAll() {
         kafkaCluster.start()
     }
 
     @AfterAll
+    @JvmDefault
     fun kafkaSuiteAfterAll() {
         kafkaCluster.stop()
     }
