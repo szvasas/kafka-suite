@@ -11,10 +11,10 @@ import org.apache.kafka.common.serialization.StringSerializer
 @JvmOverloads
 fun <K, V> KafkaCluster.createProducer(config: Map<String, String> = emptyMap()): Producer<K, V> {
     val default = defaultConfig(bootstrapServers)
-    (default.keys + config.keys).associateWith {
+    val mergedConfig = (default.keys + config.keys).associateWith {
         key -> config.getOrDefault(key, default[key])
     }
-    return KafkaProducer(config)
+    return KafkaProducer(mergedConfig)
 }
 
 @JvmOverloads
