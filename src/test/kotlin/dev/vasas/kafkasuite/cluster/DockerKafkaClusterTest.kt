@@ -1,9 +1,9 @@
 package dev.vasas.kafkasuite.cluster
 
-import dev.vasas.kafkasuite.createTopic
-import dev.vasas.kafkasuite.deleteTopic
-import dev.vasas.kafkasuite.listNodes
-import dev.vasas.kafkasuite.listTopics
+import dev.vasas.kafkasuite.extension.createTopic
+import dev.vasas.kafkasuite.extension.deleteTopic
+import dev.vasas.kafkasuite.extension.listNodes
+import dev.vasas.kafkasuite.extension.listTopics
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.AfterAll
