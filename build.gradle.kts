@@ -20,7 +20,7 @@ dependencies {
     implementation(platform("org.testcontainers:testcontainers-bom:$testContainersVersion"))
     implementation("org.testcontainers:kafka")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+    implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$jupiterVersion")
     testImplementation("org.assertj:assertj-core:$assertjVersion")

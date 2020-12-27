@@ -1,28 +1,16 @@
 package dev.vasas.kafkasuite.extension
 
-import dev.vasas.kafkasuite.cluster.DockerKafkaCluster
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
+import dev.vasas.kafkasuite.junit5.KafkaSuite
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions.assertSoftly
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-class KafkaClusterAdminTest {
+class KafkaClusterAdminTest : KafkaSuite {
 
-    lateinit var kafkaCluster: DockerKafkaCluster
-
-    @BeforeAll
-    fun beforeAll() {
-        kafkaCluster = createDockerKafkaCluster()
-        kafkaCluster.start()
-    }
-
-    @AfterAll
-    fun afterAll() {
-        kafkaCluster.stop()
-    }
+    override val kafkaCluster = createDockerKafkaCluster()
 
     @Test
     fun `listNodes() returns all the Kafka nodes`() {

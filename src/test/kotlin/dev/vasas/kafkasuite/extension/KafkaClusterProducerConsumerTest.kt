@@ -1,30 +1,18 @@
 package dev.vasas.kafkasuite.extension
 
-import dev.vasas.kafkasuite.cluster.DockerKafkaCluster
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.extension.producer.consumeAllRecordsFromTopic
+import dev.vasas.kafkasuite.junit5.KafkaSuite
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.*
 
-class KafkaClusterProducerConsumerTest {
+class KafkaClusterProducerConsumerTest : KafkaSuite {
 
-    lateinit var kafkaCluster: DockerKafkaCluster
-
-    @BeforeAll
-    fun beforeAll() {
-        kafkaCluster = createDockerKafkaCluster(nodeCount = 1)
-        kafkaCluster.start()
-    }
-
-    @AfterAll
-    fun afterAll() {
-        kafkaCluster.stop()
-    }
+    override val kafkaCluster = createDockerKafkaCluster(nodeCount = 1)
 
     @Test
     fun `consumer of a non-existing topic returns an empty list`() {

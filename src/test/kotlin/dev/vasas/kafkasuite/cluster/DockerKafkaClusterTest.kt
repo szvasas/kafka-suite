@@ -1,8 +1,7 @@
 package dev.vasas.kafkasuite.cluster
 
+import dev.vasas.kafkasuite.junit5.KafkaSuite
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -17,20 +16,9 @@ class DockerKafkaClusterTest {
     }
 
     @Nested
-    inner class `when a 3 node Kafka cluster is started` {
+    inner class `when a 3 node Kafka cluster is started` : KafkaSuite {
 
-        lateinit var kafkaCluster: DockerKafkaCluster
-
-        @BeforeAll
-        fun beforeAll() {
-            kafkaCluster = createDockerKafkaCluster()
-            kafkaCluster.start()
-        }
-
-        @AfterAll
-        fun afterAll() {
-            kafkaCluster.stop()
-        }
+        override val kafkaCluster = createDockerKafkaCluster()
 
         @Test
         fun `isRunning is true`() {
