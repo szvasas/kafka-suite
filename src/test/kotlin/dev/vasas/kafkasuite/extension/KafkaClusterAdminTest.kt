@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 class KafkaClusterAdminTest : KafkaSuite {
 
-    override val kafkaCluster = createDockerKafkaCluster()
+    override val kafkaCluster = createDockerKafkaCluster(nodeCount = 3)
 
     @Test
     fun `listNodes() returns all the Kafka nodes`() {

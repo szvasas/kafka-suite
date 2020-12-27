@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture
 
 typealias ZookeeperContainer = GenericContainer<Nothing>
 
-private const val DEFAULT_CLUSTER_SIZE = 3
+private const val DEFAULT_CLUSTER_SIZE = 1
 private const val DEFAULT_ZOOKEEPER_IMAGE = "zookeeper:3.4.9"
 private const val DEFAULT_KAFKA_IMAGE = "confluentinc/cp-kafka:5.4.3"
 private const val ZOOKEEPER_NETWORK_ALIAS = "zookeeper"

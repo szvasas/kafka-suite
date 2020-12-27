@@ -13,7 +13,12 @@ data class Metrics(
         var totalDuration: Duration = Duration.ZERO,
         val exceptions: MutableList<Exception> = mutableListOf()
 ) {
-    val averageDuration: Duration = totalDuration.dividedBy(eventCount)
+    val averageDuration: Duration
+        get() = if (eventCount > 0){
+            totalDuration.dividedBy(eventCount)
+        } else {
+            Duration.ZERO
+        }
 }
 
 class MetricsProducerDecorator<K, V>(

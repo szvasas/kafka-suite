@@ -12,7 +12,7 @@ import java.util.*
 
 class KafkaClusterProducerConsumerTest : KafkaSuite {
 
-    override val kafkaCluster = createDockerKafkaCluster(nodeCount = 1)
+    override val kafkaCluster = createDockerKafkaCluster()
 
     @Test
     fun `consumer of a non-existing topic returns an empty list`() {
