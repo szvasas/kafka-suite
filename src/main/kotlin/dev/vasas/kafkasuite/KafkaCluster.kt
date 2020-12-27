@@ -27,7 +27,9 @@ class KafkaCluster(private val zookeeperNode: ZookeeperContainer,
 
     val bootstrapServers: String
         get() {
-            return kafkaNodes.joinToString(",", transform = KafkaContainer::getBootstrapServers)
+            return kafkaNodes.filter {
+                it.isRunning
+            }.joinToString(",", transform = KafkaContainer::getBootstrapServers)
         }
 
     fun start() {
@@ -44,6 +46,36 @@ class KafkaCluster(private val zookeeperNode: ZookeeperContainer,
     fun stop() {
         zookeeperNode.stop()
         kafkaNodes.forEach(KafkaContainer::stop)
+    }
+
+    fun startZookeeperNode() {
+        startContainer(zookeeperNode)
+    }
+
+    fun startKafkaNode(index: Int) {
+        require(index in 0 until size) {
+            "Index must be in range [0, clusterSize)"
+        }
+        startContainer(kafkaNodes[index])
+    }
+
+    fun stopZookeeper() {
+        stopContainer(zookeeperNode)
+    }
+
+    fun stopKafkaNode(index: Int) {
+        require(index in 0 until size) {
+            "Index must be in range [0, clusterSize)"
+        }
+        stopContainer(kafkaNodes[index])
+    }
+
+    private fun startContainer(container: GenericContainer<*>) {
+        container.start()
+    }
+
+    private fun stopContainer(container: GenericContainer<*>) {
+        container.stop()
     }
 }
 
