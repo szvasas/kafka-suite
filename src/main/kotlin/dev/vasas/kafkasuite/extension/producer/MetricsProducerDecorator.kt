@@ -8,14 +8,17 @@ import java.time.Duration
 import java.util.concurrent.Future
 
 
-data class Metrics(
-        var eventCount: Long = 0,
+data class Metrics<K, V> @JvmOverloads constructor(
+        var sent: Long = 0,
+        var delivered: Long = 0,
+        var failed: Long = 0,
         var totalDuration: Duration = Duration.ZERO,
+        val deliveredRecords: MutableList<ProducerRecord<K, V>> = mutableListOf(),
         val exceptions: MutableList<Exception> = mutableListOf()
 ) {
     val averageDuration: Duration
-        get() = if (eventCount > 0){
-            totalDuration.dividedBy(eventCount)
+        get() = if (sent > 0) {
+            totalDuration.dividedBy(sent)
         } else {
             Duration.ZERO
         }
@@ -23,29 +26,35 @@ data class Metrics(
 
 class MetricsProducerDecorator<K, V>(
         private val delegate: Producer<K, V>,
-        private val metrics: Metrics
+        private val metrics: Metrics<K, V>
 ) : Producer<K, V> by delegate {
 
-    override fun send(record: ProducerRecord<K, V>?): Future<RecordMetadata> {
+    override fun send(record: ProducerRecord<K, V>): Future<RecordMetadata> {
         return this.send(record, null)
     }
 
-    override fun send(record: ProducerRecord<K, V>?, callback: Callback?): Future<RecordMetadata> {
+    override fun send(record: ProducerRecord<K, V>, callback: Callback?): Future<RecordMetadata> {
         val start = System.nanoTime()
 
         val result = delegate.send(record) { metadata, exception ->
-            exception?.let { metrics.exceptions.add(exception) }
+            if (exception == null) {
+                metrics.deliveredRecords.add(record)
+                metrics.delivered++
+            } else {
+                metrics.exceptions.add(exception)
+                metrics.failed++
+            }
             callback?.onCompletion(metadata, exception)
         }
+        metrics.sent++
         result.get()
         metrics.totalDuration = metrics.totalDuration.plusNanos(System.nanoTime() - start)
-        metrics.eventCount++
 
         return result
     }
 
 }
 
-fun <K, V> Producer<K, V>.withMetricsDecorator(metrics: Metrics): Producer<K, V> {
+fun <K, V> Producer<K, V>.withMetricsDecorator(metrics: Metrics<K, V>): Producer<K, V> {
     return MetricsProducerDecorator(this, metrics)
 }

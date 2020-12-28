@@ -15,12 +15,11 @@ class ProducerDecoratorTest : KafkaSuite {
     @Test
     fun `metrics and send rate decorators work as expected`() {
         val testTopic = UUID.randomUUID().toString()
-        val generatedMessageCount = 25L
-        val sendRate = 200L
+        val generatedMessageCount = 20L
+        val sendRate = 100L
         val testMessages = createMessageSequence(testTopic, generatedMessageCount)
-        val deltaCoEff = 1.2
 
-        val metrics = Metrics()
+        val metrics = Metrics<String, String>()
         kafkaCluster.createStringProducer()
                 .withSendRateDecorator(sendRate)
                 .withMetricsDecorator(metrics)
@@ -31,16 +30,33 @@ class ProducerDecoratorTest : KafkaSuite {
                 }
 
         assertSoftly { softly ->
-            softly.assertThat(metrics.eventCount).isEqualTo(generatedMessageCount)
-            softly.assertThat(metrics.totalDuration).isBetween(
-                    ofMillis(sendRate * generatedMessageCount),
-                    ofMillis((sendRate * generatedMessageCount * deltaCoEff).toLong())
-            )
-            softly.assertThat(metrics.averageDuration).isBetween(
-                    ofMillis(sendRate),
-                    ofMillis((sendRate * deltaCoEff).toLong())
-            )
-            softly.assertThat(metrics.exceptions).isEmpty()
+            softly.assertThat(metrics.sent)
+                    .describedAs("Sent")
+                    .isEqualTo(generatedMessageCount)
+
+            softly.assertThat(metrics.delivered)
+                    .describedAs("Delivered")
+                    .isEqualTo(generatedMessageCount)
+
+            softly.assertThat(metrics.failed)
+                    .describedAs("Delivered")
+                    .isEqualTo(0)
+
+            softly.assertThat(metrics.totalDuration)
+                    .describedAs("Total duration")
+                    .isGreaterThan(ofMillis(sendRate * generatedMessageCount))
+
+            softly.assertThat(metrics.averageDuration)
+                    .describedAs("Average duration")
+                    .isGreaterThan(ofMillis(sendRate))
+
+            softly.assertThat(metrics.deliveredRecords)
+                    .describedAs("Delivered records")
+                    .containsExactlyInAnyOrderElementsOf(testMessages.asIterable())
+
+            softly.assertThat(metrics.exceptions)
+                    .describedAs("Exceptions")
+                    .isEmpty()
 
             softly.assertAll()
         }
