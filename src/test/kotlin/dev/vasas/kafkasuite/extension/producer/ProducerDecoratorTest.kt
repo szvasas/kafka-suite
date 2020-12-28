@@ -30,15 +30,15 @@ class ProducerDecoratorTest : KafkaSuite {
                 }
 
         assertSoftly { softly ->
-            softly.assertThat(metrics.sent)
+            softly.assertThat(metrics.sent.get())
                     .describedAs("Sent")
                     .isEqualTo(generatedMessageCount)
 
-            softly.assertThat(metrics.delivered)
+            softly.assertThat(metrics.delivered.get())
                     .describedAs("Delivered")
                     .isEqualTo(generatedMessageCount)
 
-            softly.assertThat(metrics.failed)
+            softly.assertThat(metrics.failed.get())
                     .describedAs("Delivered")
                     .isEqualTo(0)
 

@@ -5,20 +5,25 @@ import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import java.time.Duration
+import java.util.Collections.synchronizedList
 import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicLong
 
 
 data class Metrics<K, V> @JvmOverloads constructor(
-        var sent: Long = 0,
-        var delivered: Long = 0,
-        var failed: Long = 0,
-        var totalDuration: Duration = Duration.ZERO,
-        val deliveredRecords: MutableList<ProducerRecord<K, V>> = mutableListOf(),
-        val exceptions: MutableList<Exception> = mutableListOf()
+        var sent: AtomicLong = AtomicLong(0),
+        var delivered: AtomicLong = AtomicLong(0),
+        var failed: AtomicLong = AtomicLong(0),
+        var totalDurationInNanos: AtomicLong = AtomicLong(0),
+        val deliveredRecords: MutableList<ProducerRecord<K, V>> = synchronizedList(mutableListOf()),
+        val exceptions: MutableList<Exception> = synchronizedList(mutableListOf())
 ) {
+    val totalDuration: Duration
+        get() = Duration.ofNanos(totalDurationInNanos.get())
+
     val averageDuration: Duration
-        get() = if (sent > 0) {
-            totalDuration.dividedBy(sent)
+        get() = if (sent.get() > 0) {
+            totalDuration.dividedBy(sent.get())
         } else {
             Duration.ZERO
         }
@@ -39,16 +44,16 @@ class MetricsProducerDecorator<K, V>(
         val result = delegate.send(record) { metadata, exception ->
             if (exception == null) {
                 metrics.deliveredRecords.add(record)
-                metrics.delivered++
+                metrics.delivered.incrementAndGet()
             } else {
                 metrics.exceptions.add(exception)
-                metrics.failed++
+                metrics.failed.incrementAndGet()
             }
             callback?.onCompletion(metadata, exception)
         }
-        metrics.sent++
+        metrics.sent.incrementAndGet()
         result.get()
-        metrics.totalDuration = metrics.totalDuration.plusNanos(System.nanoTime() - start)
+        metrics.totalDurationInNanos.addAndGet(System.nanoTime() - start)
 
         return result
     }
