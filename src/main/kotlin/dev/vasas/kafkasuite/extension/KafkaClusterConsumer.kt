@@ -1,6 +1,6 @@
 @file:JvmName("KafkaClusterConsumer")
 
-package dev.vasas.kafkasuite.extension.producer
+package dev.vasas.kafkasuite.extension
 
 import dev.vasas.kafkasuite.cluster.KafkaCluster
 import org.apache.kafka.clients.consumer.Consumer
