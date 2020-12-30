@@ -2,6 +2,7 @@ package dev.vasas.kafkasuite.tools.producer
 
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.junit5.KafkaSuite
+import dev.vasas.kafkasuite.tools.stringMessageSequence
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.Test
@@ -17,7 +18,7 @@ class ProducerDecoratorTest : KafkaSuite {
         val testTopic = UUID.randomUUID().toString()
         val generatedMessageCount = 20L
         val sendRate = 100L
-        val testMessages = createMessageSequence(testTopic, generatedMessageCount)
+        val testMessages = stringMessageSequence(testTopic, generatedMessageCount)
 
         val metrics = Metrics<String, String>()
         kafkaCluster.createStringProducer()
@@ -62,14 +63,4 @@ class ProducerDecoratorTest : KafkaSuite {
         }
 
     }
-
-    private fun createMessageSequence(testTopic: String, count: Long): Sequence<ProducerRecord<String, String>> {
-        val sequence = generateSequence(0L) {
-            it + 1
-        }.map {
-            ProducerRecord(testTopic, "msg_$it", "msg_$it")
-        }
-        return sequence.take(count.toInt())
-    }
-
 }
