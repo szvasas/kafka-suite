@@ -1,7 +1,7 @@
-package dev.vasas.kafkasuite.extension
+package dev.vasas.kafkasuite.tools
 
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
-import dev.vasas.kafkasuite.extension.producer.createStringProducer
+import dev.vasas.kafkasuite.tools.producer.createStringProducer
 import dev.vasas.kafkasuite.junit5.KafkaSuite
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat

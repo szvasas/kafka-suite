@@ -1,4 +1,4 @@
-package dev.vasas.kafkasuite.extension.producer
+package dev.vasas.kafkasuite.tools.producer
 
 import org.apache.kafka.clients.producer.Callback
 import org.apache.kafka.clients.producer.Producer

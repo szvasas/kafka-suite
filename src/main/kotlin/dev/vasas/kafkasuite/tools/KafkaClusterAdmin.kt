@@ -1,6 +1,6 @@
 @file:JvmName("KafkaClusterAdmin")
 
-package dev.vasas.kafkasuite.extension
+package dev.vasas.kafkasuite.tools
 
 import dev.vasas.kafkasuite.cluster.KafkaCluster
 import org.apache.kafka.clients.admin.Admin

@@ -1,4 +1,4 @@
-package dev.vasas.kafkasuite.extension
+package dev.vasas.kafkasuite.tools
 
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.junit5.KafkaSuite
