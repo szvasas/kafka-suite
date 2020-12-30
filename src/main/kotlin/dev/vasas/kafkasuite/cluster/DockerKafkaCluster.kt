@@ -2,6 +2,7 @@
 
 package dev.vasas.kafkasuite.cluster
 
+import com.github.dockerjava.api.model.Capability
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.Network
@@ -112,4 +113,7 @@ private fun createKafkaNode(kafkaImage: String, network: Network, id: Int): Kafk
             .withNetwork(network)
             .withExternalZookeeper("$ZOOKEEPER_NETWORK_ALIAS:2181")
             .withEnv("KAFKA_BROKER_ID", id.toString())
+            .withCreateContainerCmdModifier{
+                it.hostConfig?.withCapAdd(Capability.NET_ADMIN)
+            }
 }
