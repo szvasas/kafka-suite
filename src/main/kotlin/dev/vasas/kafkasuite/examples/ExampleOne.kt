@@ -48,6 +48,5 @@ fun main() {
 
     producerSwitch.set(false)
 
-
     Thread.sleep(15000L)
 }

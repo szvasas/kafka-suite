@@ -27,6 +27,17 @@ data class Metrics<K, V> @JvmOverloads constructor(
         } else {
             Duration.ZERO
         }
+
+    override fun toString(): String {
+        return """
+            Sent: $sent
+            Delivered: $delivered
+            Failed: $failed
+            Total duration: ${totalDuration.toMillis()} milliseconds
+            Average duration: ${averageDuration.toMillis()} milliseconds
+        """.trimIndent()
+    }
+
 }
 
 class MetricsProducerDecorator<K, V>(
