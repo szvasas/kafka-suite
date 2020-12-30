@@ -6,7 +6,9 @@ import dev.vasas.kafkasuite.tools.producer.Metrics
 import dev.vasas.kafkasuite.tools.producer.createStringProducer
 import dev.vasas.kafkasuite.tools.producer.withMetricsDecorator
 import dev.vasas.kafkasuite.tools.producer.withSendRateDecorator
+import dev.vasas.kafkasuite.tools.setNetworkDelay
 import dev.vasas.kafkasuite.tools.stringRecordSequence
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -45,8 +47,8 @@ fun main() {
     }
 
     metrics.addObserver {
-        if (it.delivered == 100L) {
-            println("Delivered 100 messages.")
+        if (it.delivered == 50L) {
+            kafkaCluster.setNetworkDelay(0, Duration.ofMillis(200L))
         }
     }
 

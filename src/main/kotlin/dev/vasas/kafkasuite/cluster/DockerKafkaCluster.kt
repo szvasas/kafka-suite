@@ -55,9 +55,7 @@ class DockerKafkaCluster(
     }
 
     fun startKafkaNode(index: Int) {
-        require(index in 0 until size) {
-            "Index must be in range [0, clusterSize)"
-        }
+        checkIndex(index)
         kafkaNodes[index].start()
     }
 
@@ -66,13 +64,25 @@ class DockerKafkaCluster(
     }
 
     fun stopKafkaNode(index: Int) {
-        require(index in 0 until size) {
-            "Index must be in range [0, clusterSize)"
-        }
+        checkIndex(index)
         kafkaNodes[index].start()
     }
 
+    fun executeOnKafkaNode(index: Int, commands: List<String>): ExecResult {
+        checkIndex(index)
+        val result = kafkaNodes[index].execInContainer(*commands.toTypedArray())
+        return ExecResult(result.exitCode, result.stdout, result.stderr)
+    }
+
+    private fun checkIndex(index: Int) {
+        require(index in 0 until size) {
+            "Index must be in range [0, clusterSize)"
+        }
+    }
+
 }
+
+data class ExecResult(val exitCode: Int, val stdOut: String, val stdErr: String)
 
 @JvmOverloads
 fun createDockerKafkaCluster(
