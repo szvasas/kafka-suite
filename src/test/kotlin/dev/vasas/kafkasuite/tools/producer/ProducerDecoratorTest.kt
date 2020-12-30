@@ -7,6 +7,7 @@ import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.Test
 import java.time.Duration.ofMillis
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class ProducerDecoratorTest : KafkaSuite {
 
@@ -19,16 +20,17 @@ class ProducerDecoratorTest : KafkaSuite {
         val sendRate = 100L
         val testMessages = stringRecordSequence(testTopic, generatedMessageCount)
 
-        val metrics = Metrics<String, String>()
+        val metricsQueue = ConcurrentLinkedQueue<Metrics<String, String>>()
         kafkaCluster.createStringProducer()
                 .withSendRateDecorator(sendRate)
-                .withMetricsDecorator(metrics)
+                .withMetricsDecorator(metricsQueue)
                 .use { producer ->
                     testMessages.forEach {
                         producer.send(it)
                     }
                 }
 
+        val metrics = Metrics<String, String>().aggregate(metricsQueue)
         assertSoftly { softly ->
             softly.assertThat(metrics.sent)
                     .describedAs("Sent")

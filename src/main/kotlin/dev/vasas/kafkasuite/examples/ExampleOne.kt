@@ -10,6 +10,7 @@ import dev.vasas.kafkasuite.tools.setNetworkDelay
 import dev.vasas.kafkasuite.tools.stringRecordSequence
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun main() {
@@ -21,14 +22,15 @@ fun main() {
     kafkaCluster.start()
 
     kafkaCluster.createTopic(testTopic, testTopicNumPartitions, testTopicReplicationFactor)
+    kafkaCluster.setNetworkDelay(0, Duration.ofMillis(100L))
 
-    val metrics = Metrics<String, String>()
+    val metricsQueue = ConcurrentLinkedQueue<Metrics<String, String>>()
 
     val producerSwitch = AtomicBoolean(true)
     CompletableFuture.runAsync {
         kafkaCluster.createStringProducer()
-                .withSendRateDecorator(100L)
-                .withMetricsDecorator(metrics)
+                .withMetricsDecorator(metricsQueue)
+                .withSendRateDecorator(50L)
                 .use { producer ->
                     stringRecordSequence(testTopic).forEach { record ->
                         producer.send(record)
@@ -40,21 +42,19 @@ fun main() {
     }
 
     CompletableFuture.runAsync {
-        while (true) {
+        var metrics = Metrics<String, String>()
+        while (producerSwitch.get()) {
+            metrics = metrics.aggregate(metricsQueue)
             println(metrics)
             Thread.sleep(1000L)
         }
-    }
-
-    metrics.addObserver {
-        if (it.delivered == 50L) {
-            kafkaCluster.setNetworkDelay(0, Duration.ofMillis(200L))
-        }
+        metrics = metrics.aggregate(metricsQueue)
+        println(metrics)
     }
 
     Thread.sleep(15000L)
 
     producerSwitch.set(false)
 
-    Thread.sleep(15000L)
+    Thread.sleep(1000L)
 }

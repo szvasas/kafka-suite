@@ -5,70 +5,45 @@ import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import java.time.Duration
-import java.util.Collections.synchronizedList
+import java.util.*
 import java.util.concurrent.Future
-import java.util.concurrent.atomic.AtomicLong
 
-
-class Metrics<K, V> {
-
-    private val _sent: AtomicLong = AtomicLong(0)
-    private val _delivered: AtomicLong = AtomicLong(0)
-    private val _failed: AtomicLong = AtomicLong(0)
-    private val _totalDurationInNanos: AtomicLong = AtomicLong(0)
-    private val _deliveredRecords: MutableList<ProducerRecord<K, V>> = synchronizedList(mutableListOf())
-    private val _exceptions: MutableList<Exception> = synchronizedList(mutableListOf())
-    private val observers: MutableList<(Metrics<K, V>) -> Unit> = synchronizedList(mutableListOf())
-
-    val sent: Long
-        get() = _sent.get()
-    val delivered: Long
-        get() = _delivered.get()
-    val failed: Long
-        get() = _failed.get()
-    val totalDuration: Duration
-        get() = Duration.ofNanos(_totalDurationInNanos.get())
+data class Metrics<K, V> @JvmOverloads constructor(
+        val sent: Long = 0,
+        val delivered: Long = 0,
+        val failed: Long = 0,
+        val totalDuration: Duration = Duration.ZERO,
+        val deliveredRecords: List<ProducerRecord<K, V>> = listOf(),
+        val exceptions: List<Exception> = listOf()
+) {
     val averageDuration: Duration
-        get() = if (_sent.get() > 0) {
-            totalDuration.dividedBy(_sent.get())
+        get() = if (sent > 0) {
+            totalDuration.dividedBy(sent)
         } else {
             Duration.ZERO
         }
-    val deliveredRecords: List<ProducerRecord<K, V>>
-        get() = _deliveredRecords
-    val exceptions: List<Exception>
-        get() = _exceptions
 
-    fun sent() {
-        _sent.incrementAndGet()
-        invokeObservers()
-    }
+    fun aggregate(metrics: MutableCollection<Metrics<K, V>>): Metrics<K, V> {
+        var result = this
 
-    fun sendDuration(duration: Duration) {
-        _totalDurationInNanos.addAndGet(duration.toNanos())
-        invokeObservers()
-    }
-
-    fun delivered(record: ProducerRecord<K, V>) {
-        _delivered.incrementAndGet()
-        _deliveredRecords.add(record)
-        invokeObservers()
-    }
-
-    fun failed(exception: Exception) {
-        _failed.incrementAndGet()
-        _exceptions.add(exception)
-        invokeObservers()
-    }
-
-    fun addObserver(observer: (Metrics<K, V>) -> Unit) {
-        observers.add(observer)
-    }
-
-    private fun invokeObservers() {
-        observers.forEach { observer ->
-            observer.invoke(this)
+        val iterator = metrics.iterator()
+        while (iterator.hasNext()) {
+            result += iterator.next()
+            iterator.remove()
         }
+
+        return result
+    }
+
+    operator fun plus(other: Metrics<K, V>): Metrics<K, V> {
+        return Metrics(
+                sent = this.sent + other.sent,
+                delivered = this.delivered + other.delivered,
+                failed = this.failed + other.failed,
+                totalDuration = this.totalDuration + other.totalDuration,
+                deliveredRecords = this.deliveredRecords + other.deliveredRecords,
+                exceptions = this.exceptions + other.exceptions
+        )
     }
 
     override fun toString(): String {
@@ -80,12 +55,11 @@ class Metrics<K, V> {
             Average duration: ${averageDuration.toMillis()} milliseconds
         """.trimIndent()
     }
-
 }
 
 class MetricsProducerDecorator<K, V>(
         private val delegate: Producer<K, V>,
-        private val metrics: Metrics<K, V>
+        private val metricsQueue: Queue<Metrics<K, V>>
 ) : Producer<K, V> by delegate {
 
     override fun send(record: ProducerRecord<K, V>): Future<RecordMetadata> {
@@ -95,23 +69,34 @@ class MetricsProducerDecorator<K, V>(
     override fun send(record: ProducerRecord<K, V>, callback: Callback?): Future<RecordMetadata> {
         val start = System.nanoTime()
 
+        val deliveredRecords: MutableList<ProducerRecord<K, V>> = mutableListOf()
+        val raisedExceptions: MutableList<Exception> = mutableListOf()
+
         val result = delegate.send(record) { metadata, exception ->
             if (exception == null) {
-                metrics.delivered(record)
+                deliveredRecords.add(record)
             } else {
-                metrics.failed(exception)
+                raisedExceptions.add(exception)
             }
             callback?.onCompletion(metadata, exception)
         }
-        metrics.sent()
         result.get()
-        metrics.sendDuration(Duration.ofNanos(System.nanoTime() - start))
+        val duration = Duration.ofNanos(System.nanoTime() - start)
+
+        metricsQueue.offer(Metrics(
+                sent = 1,
+                delivered = deliveredRecords.size.toLong(),
+                failed = raisedExceptions.size.toLong(),
+                totalDuration = duration,
+                deliveredRecords = deliveredRecords,
+                exceptions = raisedExceptions
+        ))
 
         return result
     }
 
 }
 
-fun <K, V> Producer<K, V>.withMetricsDecorator(metrics: Metrics<K, V>): Producer<K, V> {
-    return MetricsProducerDecorator(this, metrics)
+fun <K, V> Producer<K, V>.withMetricsDecorator(metricsQueue: Queue<Metrics<K, V>>): Producer<K, V> {
+    return MetricsProducerDecorator(this, metricsQueue)
 }
