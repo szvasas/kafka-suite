@@ -44,6 +44,12 @@ fun main() {
         }
     }
 
+    metrics.addObserver {
+        if (it.delivered == 100L) {
+            println("Delivered 100 messages.")
+        }
+    }
+
     Thread.sleep(15000L)
 
     producerSwitch.set(false)
