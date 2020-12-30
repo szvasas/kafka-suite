@@ -51,34 +51,27 @@ class DockerKafkaCluster(
     }
 
     fun startZookeeperNode() {
-        startContainer(zookeeperNode)
+        zookeeperNode.start()
     }
 
     fun startKafkaNode(index: Int) {
         require(index in 0 until size) {
             "Index must be in range [0, clusterSize)"
         }
-        startContainer(kafkaNodes[index])
+        kafkaNodes[index].start()
     }
 
     fun stopZookeeper() {
-        stopContainer(zookeeperNode)
+        zookeeperNode.start()
     }
 
     fun stopKafkaNode(index: Int) {
         require(index in 0 until size) {
             "Index must be in range [0, clusterSize)"
         }
-        stopContainer(kafkaNodes[index])
+        kafkaNodes[index].start()
     }
 
-    private fun startContainer(container: GenericContainer<*>) {
-        container.start()
-    }
-
-    private fun stopContainer(container: GenericContainer<*>) {
-        container.stop()
-    }
 }
 
 @JvmOverloads
