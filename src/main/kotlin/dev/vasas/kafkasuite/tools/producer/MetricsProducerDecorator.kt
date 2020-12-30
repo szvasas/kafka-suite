@@ -10,23 +10,51 @@ import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicLong
 
 
-data class Metrics<K, V> @JvmOverloads constructor(
-        var sent: AtomicLong = AtomicLong(0),
-        var delivered: AtomicLong = AtomicLong(0),
-        var failed: AtomicLong = AtomicLong(0),
-        var totalDurationInNanos: AtomicLong = AtomicLong(0),
-        val deliveredRecords: MutableList<ProducerRecord<K, V>> = synchronizedList(mutableListOf()),
-        val exceptions: MutableList<Exception> = synchronizedList(mutableListOf())
-) {
-    val totalDuration: Duration
-        get() = Duration.ofNanos(totalDurationInNanos.get())
+class Metrics<K, V> {
 
+    private val _sent: AtomicLong = AtomicLong(0)
+    private val _delivered: AtomicLong = AtomicLong(0)
+    private val _failed: AtomicLong = AtomicLong(0)
+    private val _totalDurationInNanos: AtomicLong = AtomicLong(0)
+    private val _deliveredRecords: MutableList<ProducerRecord<K, V>> = synchronizedList(mutableListOf())
+    private val _exceptions: MutableList<Exception> = synchronizedList(mutableListOf())
+
+    val sent: Long
+        get() = _sent.get()
+    val delivered: Long
+        get() = _delivered.get()
+    val failed: Long
+        get() = _failed.get()
+    val totalDuration: Duration
+        get() = Duration.ofNanos(_totalDurationInNanos.get())
     val averageDuration: Duration
-        get() = if (sent.get() > 0) {
-            totalDuration.dividedBy(sent.get())
+        get() = if (_sent.get() > 0) {
+            totalDuration.dividedBy(_sent.get())
         } else {
             Duration.ZERO
         }
+    val deliveredRecords: List<ProducerRecord<K, V>>
+        get() = _deliveredRecords
+    val exceptions: List<Exception>
+        get() = _exceptions
+
+    fun sent() {
+        _sent.incrementAndGet()
+    }
+
+    fun sendDuration(duration: Duration) {
+        _totalDurationInNanos.addAndGet(duration.toNanos())
+    }
+
+    fun delivered(record: ProducerRecord<K, V>) {
+        _delivered.incrementAndGet()
+        _deliveredRecords.add(record)
+    }
+
+    fun failed(exception: Exception) {
+        _failed.incrementAndGet()
+        _exceptions.add(exception)
+    }
 
     override fun toString(): String {
         return """
@@ -54,17 +82,15 @@ class MetricsProducerDecorator<K, V>(
 
         val result = delegate.send(record) { metadata, exception ->
             if (exception == null) {
-                metrics.deliveredRecords.add(record)
-                metrics.delivered.incrementAndGet()
+                metrics.delivered(record)
             } else {
-                metrics.exceptions.add(exception)
-                metrics.failed.incrementAndGet()
+                metrics.failed(exception)
             }
             callback?.onCompletion(metadata, exception)
         }
-        metrics.sent.incrementAndGet()
+        metrics.sent()
         result.get()
-        metrics.totalDurationInNanos.addAndGet(System.nanoTime() - start)
+        metrics.sendDuration(Duration.ofNanos(System.nanoTime() - start))
 
         return result
     }
