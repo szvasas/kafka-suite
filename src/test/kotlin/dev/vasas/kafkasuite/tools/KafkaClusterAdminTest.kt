@@ -17,7 +17,7 @@ class KafkaClusterAdminTest : KafkaSuite {
         val nodeIds = kafkaCluster.listNodes().map {
             it.id()
         }
-        assertThat(nodeIds).containsExactlyInAnyOrderElementsOf(1..kafkaCluster.size)
+        assertThat(nodeIds).containsExactlyInAnyOrderElementsOf(0 until kafkaCluster.size)
     }
 
     @Test

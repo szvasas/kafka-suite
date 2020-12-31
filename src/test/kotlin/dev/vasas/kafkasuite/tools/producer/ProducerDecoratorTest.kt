@@ -3,6 +3,7 @@ package dev.vasas.kafkasuite.tools.producer
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.junit5.KafkaSuite
 import dev.vasas.kafkasuite.tools.stringRecordSequence
+import dev.vasas.kafkasuite.tools.toProducerRecord
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.Test
 import java.time.Duration.ofMillis
@@ -18,7 +19,7 @@ class ProducerDecoratorTest : KafkaSuite {
         val testTopic = UUID.randomUUID().toString()
         val generatedMessageCount = 20L
         val sendRate = 100L
-        val testMessages = stringRecordSequence(testTopic, generatedMessageCount)
+        val testMessages = stringRecordSequence(testTopic, generatedMessageCount).map { it.toProducerRecord() }
 
         val metricsQueue = ConcurrentLinkedQueue<Metrics<String, String>>()
         kafkaCluster.createStringProducer()
@@ -30,7 +31,7 @@ class ProducerDecoratorTest : KafkaSuite {
                     }
                 }
 
-        val metrics = Metrics<String, String>().aggregate(metricsQueue)
+        val metrics = metricsQueue.aggregate()
         assertSoftly { softly ->
             softly.assertThat(metrics.sent)
                     .describedAs("Sent")

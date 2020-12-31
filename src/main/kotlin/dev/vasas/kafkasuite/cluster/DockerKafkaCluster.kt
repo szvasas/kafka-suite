@@ -23,11 +23,6 @@ class DockerKafkaCluster(
 
     val size: Int = kafkaNodes.size
 
-    val isRunning: Boolean
-        get() {
-            return zookeeperNode.isRunning && kafkaNodes.all(KafkaContainer::isRunning)
-        }
-
     override val bootstrapServers: String
         get() {
             return kafkaNodes.filter {
@@ -47,37 +42,37 @@ class DockerKafkaCluster(
     }
 
     fun stop() {
-        zookeeperNode.stop()
         kafkaNodes.forEach(KafkaContainer::stop)
+        zookeeperNode.stop()
     }
 
     fun startZookeeperNode() {
         zookeeperNode.start()
     }
 
-    fun startKafkaNode(index: Int) {
-        checkIndex(index)
-        kafkaNodes[index].start()
+    fun startKafkaNode(nodeId: Int) {
+        checkNodeId(nodeId)
+        kafkaNodes[nodeId].start()
     }
 
     fun stopZookeeper() {
         zookeeperNode.start()
     }
 
-    fun stopKafkaNode(index: Int) {
-        checkIndex(index)
-        kafkaNodes[index].start()
+    fun stopKafkaNode(nodeId: Int) {
+        checkNodeId(nodeId)
+        kafkaNodes[nodeId].stop()
     }
 
-    fun executeOnKafkaNode(index: Int, commands: List<String>): ExecResult {
-        checkIndex(index)
-        val result = kafkaNodes[index].execInContainer(*commands.toTypedArray())
+    fun executeOnKafkaNode(nodeId: Int, commands: List<String>): ExecResult {
+        checkNodeId(nodeId)
+        val result = kafkaNodes[nodeId].execInContainer(*commands.toTypedArray())
         return ExecResult(result.exitCode, result.stdout, result.stderr)
     }
 
-    private fun checkIndex(index: Int) {
-        require(index in 0 until size) {
-            "Index must be in range [0, clusterSize)"
+    private fun checkNodeId(nodeId: Int) {
+        require(nodeId in 0 until size) {
+            "Node Id must be in range [0, clusterSize)"
         }
     }
 
@@ -94,7 +89,7 @@ fun createDockerKafkaCluster(
     val network = Network.newNetwork()
     val zookeeperNode = createZookeeperNode(zookeeperImage, network)
 
-    val kafkaNodes = (1..nodeCount).map { nodeId ->
+    val kafkaNodes = (0 until nodeCount).map { nodeId ->
         createKafkaNode(kafkaImage, network, nodeId)
     }
 
@@ -113,7 +108,7 @@ private fun createKafkaNode(kafkaImage: String, network: Network, id: Int): Kafk
             .withNetwork(network)
             .withExternalZookeeper("$ZOOKEEPER_NETWORK_ALIAS:2181")
             .withEnv("KAFKA_BROKER_ID", id.toString())
-            .withCreateContainerCmdModifier{
+            .withCreateContainerCmdModifier {
                 it.hostConfig?.withCapAdd(Capability.NET_ADMIN)
             }
 }

@@ -4,6 +4,7 @@ import org.apache.kafka.clients.producer.Callback
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
+import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.Future
@@ -22,18 +23,6 @@ data class Metrics<K, V> @JvmOverloads constructor(
         } else {
             Duration.ZERO
         }
-
-    fun aggregate(metrics: MutableCollection<Metrics<K, V>>): Metrics<K, V> {
-        var result = this
-
-        val iterator = metrics.iterator()
-        while (iterator.hasNext()) {
-            result += iterator.next()
-            iterator.remove()
-        }
-
-        return result
-    }
 
     operator fun plus(other: Metrics<K, V>): Metrics<K, V> {
         return Metrics(
@@ -62,6 +51,8 @@ class MetricsProducerDecorator<K, V>(
         private val metricsQueue: Queue<Metrics<K, V>>
 ) : Producer<K, V> by delegate {
 
+    private val logger = LoggerFactory.getLogger(MetricsProducerDecorator::class.java)
+
     override fun send(record: ProducerRecord<K, V>): Future<RecordMetadata> {
         return this.send(record, null)
     }
@@ -80,7 +71,11 @@ class MetricsProducerDecorator<K, V>(
             }
             callback?.onCompletion(metadata, exception)
         }
-        result.get()
+        try {
+            result.get()
+        } catch (e: Exception) {
+            logger.error(e.message, e)
+        }
         val duration = Duration.ofNanos(System.nanoTime() - start)
 
         metricsQueue.offer(Metrics(
@@ -99,4 +94,16 @@ class MetricsProducerDecorator<K, V>(
 
 fun <K, V> Producer<K, V>.withMetricsDecorator(metricsQueue: Queue<Metrics<K, V>>): Producer<K, V> {
     return MetricsProducerDecorator(this, metricsQueue)
+}
+
+fun <K, V> MutableCollection<Metrics<K, V>>.aggregate(): Metrics<K, V> {
+    var result = Metrics<K, V>()
+
+    val iterator = this.iterator()
+    while (iterator.hasNext()) {
+        result += iterator.next()
+        iterator.remove()
+    }
+
+    return result
 }

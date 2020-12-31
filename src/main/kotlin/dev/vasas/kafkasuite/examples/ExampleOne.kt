@@ -3,14 +3,16 @@ package dev.vasas.kafkasuite.examples
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.tools.createTopic
 import dev.vasas.kafkasuite.tools.producer.Metrics
+import dev.vasas.kafkasuite.tools.producer.aggregate
 import dev.vasas.kafkasuite.tools.producer.createStringProducer
 import dev.vasas.kafkasuite.tools.producer.withMetricsDecorator
 import dev.vasas.kafkasuite.tools.producer.withSendRateDecorator
-import dev.vasas.kafkasuite.tools.setNetworkDelay
 import dev.vasas.kafkasuite.tools.stringRecordSequence
-import java.time.Duration
+import dev.vasas.kafkasuite.tools.toProducerRecord
+import org.apache.kafka.clients.producer.ProducerConfig
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun main() {
@@ -22,18 +24,20 @@ fun main() {
     kafkaCluster.start()
 
     kafkaCluster.createTopic(testTopic, testTopicNumPartitions, testTopicReplicationFactor)
-    kafkaCluster.setNetworkDelay(0, Duration.ofMillis(100L))
 
     val metricsQueue = ConcurrentLinkedQueue<Metrics<String, String>>()
 
     val producerSwitch = AtomicBoolean(true)
     CompletableFuture.runAsync {
-        kafkaCluster.createStringProducer()
+        val producerConfig = mapOf(
+                ProducerConfig.ACKS_CONFIG to "1"
+        )
+        kafkaCluster.createStringProducer(producerConfig)
                 .withMetricsDecorator(metricsQueue)
                 .withSendRateDecorator(50L)
                 .use { producer ->
                     stringRecordSequence(testTopic).forEach { record ->
-                        producer.send(record)
+                        producer.send(record.toProducerRecord())
                         if (!producerSwitch.get()) {
                             return@use
                         }
@@ -41,20 +45,35 @@ fun main() {
                 }
     }
 
-    CompletableFuture.runAsync {
-        var metrics = Metrics<String, String>()
-        while (producerSwitch.get()) {
-            metrics = metrics.aggregate(metricsQueue)
-            println(metrics)
-            Thread.sleep(1000L)
+    var totalMetrics = Metrics<String, String>()
+    var runningMetrics = Metrics<String, String>()
+    var firstAction = true
+    var secondAction = true
+    while (producerSwitch.get()) {
+        val increment = metricsQueue.aggregate()
+        runningMetrics += increment
+        totalMetrics += increment
+        println(runningMetrics)
+        println()
+        Thread.sleep(1000L)
+
+        if (totalMetrics.sent >= 150 && firstAction) {
+            kafkaCluster.stopKafkaNode(0)
+            firstAction = false
+
+            val delayedExecutor = CompletableFuture.delayedExecutor(15, TimeUnit.SECONDS)
+            CompletableFuture.runAsync({
+                println("Starting the cluster")
+                kafkaCluster.startKafkaNode(0)
+            }, delayedExecutor)
         }
-        metrics = metrics.aggregate(metricsQueue)
-        println(metrics)
+
+        if (totalMetrics.sent >= 185 && secondAction) {
+            producerSwitch.set(false)
+            secondAction = false
+        }
     }
 
-    Thread.sleep(15000L)
+    println(totalMetrics)
 
-    producerSwitch.set(false)
-
-    Thread.sleep(1000L)
 }

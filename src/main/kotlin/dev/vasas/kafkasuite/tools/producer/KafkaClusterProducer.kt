@@ -9,7 +9,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 
 @JvmOverloads
-fun <K, V> KafkaCluster.createProducer(config: Map<String, String> = emptyMap()): Producer<K, V> {
+fun <K, V> KafkaCluster.createProducer(config: Map<String, Any> = emptyMap()): Producer<K, V> {
     val default = defaultConfig(bootstrapServers)
     val mergedConfig = (default.keys + config.keys).associateWith {
         key -> config.getOrDefault(key, default[key])
@@ -18,12 +18,12 @@ fun <K, V> KafkaCluster.createProducer(config: Map<String, String> = emptyMap())
 }
 
 @JvmOverloads
-fun KafkaCluster.createStringProducer(config: Map<String, String> = emptyMap()): Producer<String, String> {
+fun KafkaCluster.createStringProducer(config: Map<String, Any> = emptyMap()): Producer<String, String> {
     return createProducer(config)
 }
 
-private fun defaultConfig(bootstrapServers: String): Map<String, String> {
-    return mapOf(
+private fun defaultConfig(bootstrapServers: String): Map<String, Any> {
+    return mapOf<String, Any>(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,

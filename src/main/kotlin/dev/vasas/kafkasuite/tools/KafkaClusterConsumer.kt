@@ -15,6 +15,14 @@ import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import java.time.Duration
 
+fun KafkaCluster.consumeAllTestRecordsFromTopic(
+        topic: String
+): List<TestRecord> {
+    return consumeAllRecordsFromTopic(topic, StringDeserializer::class.java, StringDeserializer::class.java).map {
+        it.toTestRecord()
+    }
+}
+
 fun KafkaCluster.consumeAllRecordsFromTopic(
         topic: String
 ): List<ConsumerRecord<String, String>> {
