@@ -17,7 +17,7 @@ import java.time.Duration
 
 fun KafkaCluster.consumeAllTestRecordsFromTopic(
         topic: String
-): List<TestRecord> {
+): List<TestRecord<String, String>> {
     return consumeAllRecordsFromTopic(topic, StringDeserializer::class.java, StringDeserializer::class.java).map {
         it.toTestRecord()
     }

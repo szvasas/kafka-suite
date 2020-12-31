@@ -5,19 +5,21 @@ package dev.vasas.kafkasuite.tools
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 
-data class TestRecord(val topic: String, val key: String?, val value: String)
+data class TestRecord<K, V>(val topic: String, val key: K?, val value: V)
 
-fun stringRecordSequence(topic: String, count: Long? = null): Sequence<TestRecord> {
-    val sequence = generateSequence(0L) {
+fun generateStringRecords(topic: String, num: Int): List<TestRecord<String, String>> {
+    return generateStringRecords(topic).take(num).toList()
+}
+
+fun generateStringRecords(topic: String): Sequence<TestRecord<String, String>> {
+    return generateSequence(0L) {
         it + 1
     }.map {
         TestRecord(topic, "msg_$it", "msg_$it")
     }
-
-    return if (count != null) sequence.take(count.toInt()) else sequence
 }
 
-fun TestRecord.toProducerRecord(): ProducerRecord<String, String> {
+fun <K, V> TestRecord<K, V>.toProducerRecord(): ProducerRecord<K, V> {
     return if (key == null) {
         ProducerRecord(topic, value)
     } else {
@@ -25,6 +27,6 @@ fun TestRecord.toProducerRecord(): ProducerRecord<String, String> {
     }
 }
 
-fun ConsumerRecord<String, String>.toTestRecord(): TestRecord {
+fun <K, V> ConsumerRecord<K, V>.toTestRecord(): TestRecord<K, V> {
     return TestRecord(topic(), key(), value())
 }

@@ -7,7 +7,7 @@ import dev.vasas.kafkasuite.tools.producer.aggregate
 import dev.vasas.kafkasuite.tools.producer.createStringProducer
 import dev.vasas.kafkasuite.tools.producer.withMetricsDecorator
 import dev.vasas.kafkasuite.tools.producer.withSendRateDecorator
-import dev.vasas.kafkasuite.tools.stringRecordSequence
+import dev.vasas.kafkasuite.tools.generateStringRecords
 import dev.vasas.kafkasuite.tools.toProducerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
 import java.util.concurrent.CompletableFuture
@@ -36,7 +36,7 @@ fun main() {
                 .withMetricsDecorator(metricsQueue)
                 .withSendRateDecorator(50L)
                 .use { producer ->
-                    stringRecordSequence(testTopic).forEach { record ->
+                    generateStringRecords(testTopic).forEach { record ->
                         producer.send(record.toProducerRecord())
                         if (!producerSwitch.get()) {
                             return@use

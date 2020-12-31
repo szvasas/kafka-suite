@@ -2,7 +2,7 @@ package dev.vasas.kafkasuite.tools.producer
 
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.junit5.KafkaSuite
-import dev.vasas.kafkasuite.tools.stringRecordSequence
+import dev.vasas.kafkasuite.tools.generateStringRecords
 import dev.vasas.kafkasuite.tools.toProducerRecord
 import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.Test
@@ -17,9 +17,9 @@ class ProducerDecoratorTest : KafkaSuite {
     @Test
     fun `metrics and send rate decorators work as expected`() {
         val testTopic = UUID.randomUUID().toString()
-        val generatedMessageCount = 20L
+        val generatedMessageCount = 20
         val sendRate = 100L
-        val testMessages = stringRecordSequence(testTopic, generatedMessageCount).map { it.toProducerRecord() }
+        val testMessages = generateStringRecords(testTopic, generatedMessageCount).map { it.toProducerRecord() }
 
         val metricsQueue = ConcurrentLinkedQueue<Metrics<String, String>>()
         kafkaCluster.createStringProducer()
