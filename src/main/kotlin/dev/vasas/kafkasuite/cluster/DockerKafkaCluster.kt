@@ -70,6 +70,16 @@ class DockerKafkaCluster(
         return ExecResult(result.exitCode, result.stdout, result.stderr)
     }
 
+    fun pauseKafkaNode(nodeId: Int) {
+        checkNodeId(nodeId)
+        kafkaNodes[nodeId].dockerClient.pauseContainerCmd(kafkaNodes[nodeId].containerId).exec()
+    }
+
+    fun unpauseKafkaNode(nodeId: Int) {
+        checkNodeId(nodeId)
+        kafkaNodes[nodeId].dockerClient.unpauseContainerCmd(kafkaNodes[nodeId].containerId).exec()
+    }
+
     private fun checkNodeId(nodeId: Int) {
         require(nodeId in 0 until size) {
             "Node Id must be in range [0, clusterSize)"

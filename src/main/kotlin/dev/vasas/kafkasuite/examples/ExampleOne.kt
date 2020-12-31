@@ -58,17 +58,17 @@ fun main() {
         Thread.sleep(1000L)
 
         if (totalMetrics.sent >= 150 && firstAction) {
-            kafkaCluster.stopKafkaNode(0)
+            kafkaCluster.pauseKafkaNode(0)
             firstAction = false
 
-            val delayedExecutor = CompletableFuture.delayedExecutor(15, TimeUnit.SECONDS)
+            val delayedExecutor = CompletableFuture.delayedExecutor(130, TimeUnit.SECONDS)
             CompletableFuture.runAsync({
                 println("Starting the cluster")
-                kafkaCluster.startKafkaNode(0)
+                kafkaCluster.unpauseKafkaNode(0)
             }, delayedExecutor)
         }
 
-        if (totalMetrics.sent >= 185 && secondAction) {
+        if (totalMetrics.sent >= 200 && secondAction) {
             producerSwitch.set(false)
             secondAction = false
         }
