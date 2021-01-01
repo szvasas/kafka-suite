@@ -1,1 +1,3 @@
-rootProject.name = "kafka-suite"
+rootProject.name = "kafka-suite-parent"
+include("kafka-suite-demo")
+include("kafka-suite")
