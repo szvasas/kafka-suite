@@ -46,38 +46,10 @@ class DockerKafkaCluster(
         zookeeperNode.stop()
     }
 
-    fun startZookeeperNode() {
-        zookeeperNode.start()
-    }
-
-    fun startKafkaNode(nodeId: Int) {
-        checkNodeId(nodeId)
-        kafkaNodes[nodeId].start()
-    }
-
-    fun stopZookeeper() {
-        zookeeperNode.start()
-    }
-
-    fun stopKafkaNode(nodeId: Int) {
-        checkNodeId(nodeId)
-        kafkaNodes[nodeId].stop()
-    }
-
     fun executeOnKafkaNode(nodeId: Int, commands: List<String>): ExecResult {
         checkNodeId(nodeId)
         val result = kafkaNodes[nodeId].execInContainer(*commands.toTypedArray())
         return ExecResult(result.exitCode, result.stdout, result.stderr)
-    }
-
-    fun pauseKafkaNode(nodeId: Int) {
-        checkNodeId(nodeId)
-        kafkaNodes[nodeId].dockerClient.pauseContainerCmd(kafkaNodes[nodeId].containerId).exec()
-    }
-
-    fun unpauseKafkaNode(nodeId: Int) {
-        checkNodeId(nodeId)
-        kafkaNodes[nodeId].dockerClient.unpauseContainerCmd(kafkaNodes[nodeId].containerId).exec()
     }
 
     private fun checkNodeId(nodeId: Int) {
