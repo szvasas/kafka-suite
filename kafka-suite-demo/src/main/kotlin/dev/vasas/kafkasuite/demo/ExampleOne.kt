@@ -7,6 +7,8 @@ import dev.vasas.kafkasuite.demo.tools.producer.aggregate
 import dev.vasas.kafkasuite.tools.createStringProducer
 import dev.vasas.kafkasuite.demo.tools.producer.withMetricsDecorator
 import dev.vasas.kafkasuite.demo.tools.producer.withSendRateDecorator
+import dev.vasas.kafkasuite.tools.disableNetwork
+import dev.vasas.kafkasuite.tools.enableNetwork
 import dev.vasas.kafkasuite.tools.generateStringRecords
 import dev.vasas.kafkasuite.tools.toProducerRecord
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -58,13 +60,13 @@ fun main() {
         Thread.sleep(1000L)
 
         if (totalMetrics.sent >= 150 && firstAction) {
-            kafkaCluster.pauseKafkaNode(0)
+            kafkaCluster.disableNetwork(0)
             firstAction = false
 
             val delayedExecutor = CompletableFuture.delayedExecutor(130, TimeUnit.SECONDS)
             CompletableFuture.runAsync({
                 println("Starting the cluster")
-                kafkaCluster.unpauseKafkaNode(0)
+                kafkaCluster.enableNetwork(0)
             }, delayedExecutor)
         }
 
