@@ -7,16 +7,15 @@ import org.apache.kafka.clients.producer.ProducerRecord
 
 data class TestRecord<K, V>(val topic: String, val key: K?, val value: V)
 
-fun generateStringRecords(topic: String, num: Int): List<TestRecord<String, String>> {
-    return generateStringRecords(topic).take(num).toList()
-}
-
-fun generateStringRecords(topic: String): Sequence<TestRecord<String, String>> {
-    return generateSequence(0L) {
+@JvmOverloads
+fun generateStringRecords(topic: String, num: Int? = null, prefix: String = "msg"): Sequence<TestRecord<String, String>> {
+    val sequence = generateSequence(0L) {
         it + 1
     }.map {
-        TestRecord(topic, "msg_$it", "msg_$it")
+        TestRecord(topic, "$prefix-$it", "$prefix-$it")
     }
+
+    return if (num == null) sequence else sequence.take(num)
 }
 
 fun <K, V> TestRecord<K, V>.toProducerRecord(): ProducerRecord<K, V> {

@@ -38,7 +38,7 @@ class KafkaClusterProducerConsumerTest : KafkaSuite {
         fun `consumer can read all of them`() {
             val consumedMessages = kafkaCluster.consumeAllTestRecordsFromTopic(testTopic)
 
-            assertThat(consumedMessages).containsExactlyInAnyOrderElementsOf(testMessages)
+            assertThat(consumedMessages).containsExactlyInAnyOrderElementsOf(testMessages.asIterable())
         }
     }
 

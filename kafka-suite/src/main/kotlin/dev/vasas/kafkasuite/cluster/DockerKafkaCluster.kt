@@ -71,7 +71,7 @@ fun createDockerKafkaCluster(
     val network = Network.newNetwork()
     val zookeeperNode = createZookeeperNode(zookeeperImage, network)
 
-    val kafkaNodes = (0 until nodeCount).map { nodeId ->
+    val kafkaNodes = List(nodeCount) { nodeId ->
         createKafkaNode(kafkaImage, network, nodeId)
     }
 

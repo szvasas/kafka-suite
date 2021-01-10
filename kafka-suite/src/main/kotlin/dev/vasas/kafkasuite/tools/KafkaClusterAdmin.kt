@@ -13,13 +13,16 @@ import org.apache.kafka.common.Node
 
 @JvmOverloads
 fun KafkaCluster.createTopic(topicName: String, numPartitions: Int = 1, replicationFactor: Short = 1) {
+    createTopic(NewTopic(topicName, numPartitions, replicationFactor))
+}
+
+fun KafkaCluster.createTopic(newTopic: NewTopic) {
     adminClient().use { admin ->
-        val newTopic = NewTopic(topicName, numPartitions, replicationFactor)
         admin.createTopics(listOf(newTopic)).all().get()
     }
 
     verifyWithAllNodes { admin ->
-        admin.listTopicNames().contains(topicName)
+        admin.listTopicNames().contains(newTopic.name())
     }
 }
 
