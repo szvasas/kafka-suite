@@ -11,7 +11,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
-class Producer<K, V>(
+class ProducerActor<K, V>(
         val id: String,
         val kafkaProducer: org.apache.kafka.clients.producer.Producer<K, V>,
         val records: Sequence<TestRecord<K, V>>,
@@ -20,7 +20,7 @@ class Producer<K, V>(
         val isActive: AtomicBoolean,
 ) {
 
-    private val logger = LoggerFactory.getLogger(Producer::class.java)
+    private val logger = LoggerFactory.getLogger(ProducerActor::class.java)
 
     suspend fun produce() {
         records.forEach {

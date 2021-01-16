@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicBoolean
 
-class ProducerTest : KafkaSuite {
+class ProducerActorTest : KafkaSuite {
 
     override val kafkaCluster = createDockerKafkaCluster()
 
@@ -30,7 +30,7 @@ class ProducerTest : KafkaSuite {
         val testMessages = generateStringRecords(testTopic, generatedMessageCount)
 
         val metricsQueue = ConcurrentLinkedQueue<Metrics<String, String>>()
-        val producer = Producer(
+        val producer = ProducerActor(
                 id = "firstProducer",
                 kafkaProducer = kafkaCluster.createStringProducer(),
                 records = testMessages,
@@ -80,7 +80,7 @@ class ProducerTest : KafkaSuite {
     @Timeout(1L, unit = SECONDS)
     fun `producer can be cancelled`() {
         val isActive = AtomicBoolean(true)
-        val producer = Producer(
+        val producer = ProducerActor(
                 id = "firstProducer",
                 kafkaProducer = kafkaCluster.createStringProducer(),
                 records = generateStringRecords(UUID.randomUUID().toString()),
@@ -102,7 +102,7 @@ class ProducerTest : KafkaSuite {
     fun `produce rate can be specified`() {
         val rate = 100L
         val numRecords = 20
-        val producer = Producer(
+        val producer = ProducerActor(
                 id = "firstProducer",
                 kafkaProducer = kafkaCluster.createStringProducer(),
                 records = generateStringRecords(UUID.randomUUID().toString(), numRecords),
