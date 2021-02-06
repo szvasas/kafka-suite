@@ -27,7 +27,7 @@ subprojects {
 
     ext {
         set("jupiterVersion", "5.6.2")
-        set("assertjVersion", "3.18.1")
+        set("kotestVersion", "4.4.0")
     }
 
 }

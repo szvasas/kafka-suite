@@ -68,5 +68,5 @@ dependencies {
     api("org.junit.jupiter:junit-jupiter-api:${project.ext["jupiterVersion"]}")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:${project.ext["jupiterVersion"]}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${project.ext["jupiterVersion"]}")
-    testImplementation("org.assertj:assertj-core:${project.ext["assertjVersion"]}")
+    testImplementation("io.kotest:kotest-assertions-core:${project.ext["kotestVersion"]}")
 }

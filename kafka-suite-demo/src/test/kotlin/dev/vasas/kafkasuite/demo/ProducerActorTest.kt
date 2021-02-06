@@ -4,12 +4,15 @@ import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.junit5.KafkaSuite
 import dev.vasas.kafkasuite.tools.createStringProducer
 import dev.vasas.kafkasuite.tools.generateStringRecords
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.longs.shouldBeExactly
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.SoftAssertions.assertSoftly
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.time.Duration
@@ -43,36 +46,14 @@ class ProducerActorTest : KafkaSuite {
         }
 
         val metrics = metricsQueue.aggregate()
-        assertSoftly { softly ->
-            softly.assertThat(metrics.sent)
-                    .describedAs("Sent")
-                    .isEqualTo(generatedMessageCount.toLong())
-
-            softly.assertThat(metrics.delivered)
-                    .describedAs("Delivered")
-                    .isEqualTo(generatedMessageCount.toLong())
-
-            softly.assertThat(metrics.failed)
-                    .describedAs("Failed")
-                    .isEqualTo(0)
-
-            softly.assertThat(metrics.totalDuration)
-                    .describedAs("Total duration")
-                    .isGreaterThan(ofMillis(generatedMessageCount.toLong()))
-
-            softly.assertThat(metrics.averageDuration)
-                    .describedAs("Average duration")
-                    .isGreaterThan(ofMillis(0L))
-
-            softly.assertThat(metrics.deliveredRecords)
-                    .describedAs("Delivered records")
-                    .containsExactlyInAnyOrderElementsOf(testMessages.asIterable())
-
-            softly.assertThat(metrics.exceptions)
-                    .describedAs("Exceptions")
-                    .isEmpty()
-
-            softly.assertAll()
+        assertSoftly {
+            metrics.sent shouldBeExactly generatedMessageCount.toLong()
+            metrics.delivered shouldBeExactly generatedMessageCount.toLong()
+            metrics.failed shouldBeExactly 0
+            metrics.totalDuration shouldBeGreaterThan ofMillis(generatedMessageCount.toLong())
+            metrics.averageDuration shouldBeGreaterThan ofMillis(0L)
+            metrics.deliveredRecords shouldContainAll testMessages.toList()
+            metrics.exceptions.isEmpty() shouldBe true
         }
     }
 
@@ -117,6 +98,6 @@ class ProducerActorTest : KafkaSuite {
         }
         val duration = Duration.ofNanos(System.nanoTime() - start)
 
-        assertThat(duration).isGreaterThan(ofMillis(rate * numRecords))
+        duration shouldBeGreaterThan ofMillis(rate * numRecords)
     }
 }

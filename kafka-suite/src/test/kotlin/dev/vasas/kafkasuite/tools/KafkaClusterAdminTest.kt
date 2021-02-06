@@ -2,8 +2,11 @@ package dev.vasas.kafkasuite.tools
 
 import dev.vasas.kafkasuite.cluster.createDockerKafkaCluster
 import dev.vasas.kafkasuite.junit5.KafkaSuite
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.SoftAssertions.assertSoftly
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
+import org.apache.kafka.common.Node
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -14,23 +17,22 @@ class KafkaClusterAdminTest : KafkaSuite {
 
     @Test
     fun `listNodes() returns all the Kafka nodes`() {
-        val nodeIds = kafkaCluster.listNodes().map {
-            it.id()
-        }
-        assertThat(nodeIds).containsExactlyInAnyOrderElementsOf(0 until kafkaCluster.size)
+        val nodeIds = kafkaCluster.listNodes().map(Node::id)
+
+        nodeIds shouldContainExactly (0 until kafkaCluster.size)
     }
 
     @Test
     fun `listTopics() returns an empty list`() {
-        assertThat(kafkaCluster.listTopics()).isEmpty()
+        kafkaCluster.listTopics().isEmpty() shouldBe true
     }
 
     @Nested
     inner class `when a new topic is created` {
 
-        val topicName = "myTestTopic"
-        val numPartitions = 2
-        val replicationFactor = 3
+        private val topicName = "myTestTopic"
+        private val numPartitions = 2
+        private val replicationFactor = 3
 
         @BeforeAll
         fun beforeAll() {
@@ -41,15 +43,13 @@ class KafkaClusterAdminTest : KafkaSuite {
         fun `the topic is available in the cluster with correct parameters`() {
             val createdTopic = kafkaCluster.listTopics().first()
 
-            assertSoftly { softly ->
-                softly.assertThat(createdTopic.name()).isEqualTo(topicName)
-                softly.assertThat(createdTopic.partitions().size).isEqualTo(numPartitions)
+            assertSoftly {
+                createdTopic.name() shouldBe topicName
+                createdTopic.partitions().size shouldBeExactly numPartitions
 
                 createdTopic.partitions().forEach {
-                    softly.assertThat(it.replicas().size).isEqualTo(replicationFactor)
+                    it.replicas().size shouldBeExactly replicationFactor
                 }
-
-                softly.assertAll()
             }
         }
 
@@ -63,7 +63,7 @@ class KafkaClusterAdminTest : KafkaSuite {
 
             @Test
             fun `listTopics() returns empty an list again`() {
-                assertThat(kafkaCluster.listTopics()).isEmpty()
+                kafkaCluster.listTopics().isEmpty() shouldBe true
             }
         }
 
