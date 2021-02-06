@@ -61,7 +61,6 @@ private fun <K, V> KafkaCluster.kafkaConsumer(
     return KafkaConsumer(mapOf(
             BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             KEY_DESERIALIZER_CLASS_CONFIG to keyDeserializer.name,
-            VALUE_DESERIALIZER_CLASS_CONFIG to valueDeserializer.name,
-            GROUP_ID_CONFIG to "consumeAllRecordsFromTopicConsumer"
+            VALUE_DESERIALIZER_CLASS_CONFIG to valueDeserializer.name
     ))
 }
