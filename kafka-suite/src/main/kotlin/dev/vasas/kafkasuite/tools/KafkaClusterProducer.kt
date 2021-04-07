@@ -26,8 +26,6 @@ private fun defaultConfig(bootstrapServers: String): Map<String, Any> {
     return mapOf<String, Any>(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
-            ProducerConfig.ACKS_CONFIG to "all",
-            ProducerConfig.RETRIES_CONFIG to "3"
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name
     )
 }
