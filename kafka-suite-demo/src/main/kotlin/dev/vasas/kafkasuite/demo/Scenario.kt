@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 data class Topic(
         val numPartitions: Int = 1,
         val replicationFactor: Short = 1,
+        val minInSyncReplicas: Short = 1,
         val name: String = "topic"
 )
 
@@ -53,7 +54,7 @@ data class Scenario(
     fun run() {
         kafkaCluster.start()
         topics.forEach {
-            kafkaCluster.createTopic(it.name, it.numPartitions, it.replicationFactor)
+            kafkaCluster.createTopic(it.name, it.numPartitions, it.replicationFactor, it.minInSyncReplicas)
         }
         startProducerActors()
         runActionLoop()

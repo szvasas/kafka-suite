@@ -12,9 +12,11 @@ import org.apache.kafka.common.Node
 
 
 @JvmOverloads
-fun KafkaCluster.createTopic(topicName: String, numPartitions: Int = 1, replicationFactor: Short = 1) {
+fun KafkaCluster.createTopic(topicName: String, numPartitions: Int = 1, replicationFactor: Short = 1, minInSyncReplicas: Short = 1) {
     adminClient().use { admin ->
-        val newTopic = NewTopic(topicName, numPartitions, replicationFactor)
+        val newTopic = NewTopic(topicName, numPartitions, replicationFactor).apply {
+            configs(mapOf("min.insync.replicas" to minInSyncReplicas.toString()))
+        }
         admin.createTopics(listOf(newTopic)).all().get()
     }
 
