@@ -1,7 +1,8 @@
 plugins {
     id("org.jetbrains.kotlin.jvm")
+    id("application")
 }
-
+application.mainClassName = "dev.vasas.kafkasuite.demo.StartupClusterKt"
 dependencies {
     val kotlinxVersion = "1.4.2"
 
