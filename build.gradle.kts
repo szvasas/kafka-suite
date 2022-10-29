@@ -21,7 +21,7 @@ subprojects {
         kotlinOptions {
             jvmTarget = "1.8"
 
-            freeCompilerArgs = listOf("-Xjvm-default=enable")
+            freeCompilerArgs = listOf("-Xjvm-default=all")
         }
     }
 
