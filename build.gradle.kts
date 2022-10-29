@@ -1,5 +1,5 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.21" apply false
+    id("org.jetbrains.kotlin.jvm") version "1.7.20" apply false
 }
 
 allprojects {
@@ -26,8 +26,8 @@ subprojects {
     }
 
     ext {
-        set("jupiterVersion", "5.6.2")
-        set("kotestVersion", "4.4.0")
+        set("jupiterVersion", "5.8.2")
+        set("kotestVersion", "5.5.3")
     }
 
 }

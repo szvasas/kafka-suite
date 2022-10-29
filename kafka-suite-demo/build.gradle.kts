@@ -4,7 +4,7 @@ plugins {
 }
 application.mainClassName = "dev.vasas.kafkasuite.demo.StartupClusterKt"
 dependencies {
-    val kotlinxVersion = "1.4.2"
+    val kotlinxVersion = "1.6.4"
 
     implementation(project(":kafka-suite"))
 
